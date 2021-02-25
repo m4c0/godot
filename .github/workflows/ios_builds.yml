@@ -48,7 +48,13 @@ jobs:
         env:
           SCONS_CACHE: ${{github.workspace}}/.scons_cache/
         run: |
-          scons target=release tools=no
+          scons target=release tools=no arch=arm
+          scons target=release tools=no arch=arm64
+          cp -r misc/dist/ios_xcode/* bin/
+          lipo -create bin/libgodot.iphone.opt.arm.a bin/libgodot.iphone.opt.arm64.a -output bin/libgodot.iphone.release.fat.a
+          lipo -create bin/libgodot_camera_module.iphone.opt.arm.a bin/libgodot_camera_module.iphone.opt.arm64.a -output bin/libgodot_camera_module.iphone.release.fat.a
+          lipo -create bin/libgodot_arkit_module.iphone.opt.arm.a bin/libgodot_arkit_module.iphone.opt.arm64.a -output bin/libgodot_arkit_module.iphone.release.fat.a
+          rm -f bin/*.arm.a bin/*.arm64.a
           ls -l bin/
 
       - uses: actions/upload-artifact@v2
@@ -56,3 +62,5 @@ jobs:
           name: ${{ github.job }}
           path: bin/*
           retention-days: 14
+
+
