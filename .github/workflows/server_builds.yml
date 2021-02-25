@@ -1,24 +1,35 @@
-name: 🍎 macOS Builds
+name: ☁ Server Builds
 on: [push, pull_request]
 
-# Global Settings
+# Global Cache Settings
 env:
   GODOT_BASE_BRANCH: 3.2
-  SCONSFLAGS: platform=osx verbose=yes warnings=all werror=yes debug_symbols=no --jobs=2
+  SCONSFLAGS: platform=server verbose=yes warnings=all werror=yes debug_symbols=no --jobs=2
   SCONS_CACHE_LIMIT: 4096
 
 jobs:
-  macos-editor:
-    runs-on: "macos-latest"
-
-    name: Editor (target=release_debug, tools=yes)
+  linux-editor:
+    runs-on: "ubuntu-20.04"
+    name: Linux Headless w/ Mono (target=release_debug, tools=yes)
 
     steps:
       - uses: actions/checkout@v2
 
+      # Azure repositories are not reliable, we need to prevent azure giving us packages.
+      - name: Make apt sources.list use the default Ubuntu repositories
+        run: |
+          sudo cp -f misc/ci/sources.list /etc/apt/sources.list
+          sudo apt-get update
+
+      # Install all packages (except scons)
+      - name: Configure dependencies
+        run: |
+          sudo apt-get install build-essential pkg-config libx11-dev libxcursor-dev \
+            libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev libxi-dev libxrandr-dev yasm
+
       # Upload cache on completion and check it out now
       - name: Load .scons_cache directory
-        id: macos-editor-cache
+        id: linux-headless-cache
         uses: actions/cache@v2
         with:
           path: ${{github.workspace}}/.scons_cache/
@@ -50,25 +61,30 @@ jobs:
         env:
           SCONS_CACHE: ${{github.workspace}}/.scons_cache/
         run: |
-          scons tools=yes target=release_debug
-          ls -l bin/
+          scons -j2 verbose=yes warnings=all werror=yes platform=server tools=yes target=release_debug module_mono_enabled=yes mono_glue=no
 
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ${{ github.job }}
-          path: bin/*
-          retention-days: 14
-
-  macos-template:
-    runs-on: "macos-latest"
-    name: Template (target=release, tools=no)
+  linux-server:
+    runs-on: "ubuntu-20.04"
+    name: Linux Server w/ Mono (target=release, tools=no)
 
     steps:
       - uses: actions/checkout@v2
 
+      # Azure repositories are not reliable, we need to prevent azure giving us packages.
+      - name: Make apt sources.list use the default Ubuntu repositories
+        run: |
+          sudo cp -f misc/ci/sources.list /etc/apt/sources.list
+          sudo apt-get update
+
+      # Install all packages (except scons)
+      - name: Configure dependencies
+        run: |
+          sudo apt-get install build-essential pkg-config libx11-dev libxcursor-dev \
+            libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev libxi-dev libxrandr-dev yasm
+
       # Upload cache on completion and check it out now
       - name: Load .scons_cache directory
-        id: macos-template-cache
+        id: linux-server-cache
         uses: actions/cache@v2
         with:
           path: ${{github.workspace}}/.scons_cache/
@@ -99,11 +115,4 @@ jobs:
         env:
           SCONS_CACHE: ${{github.workspace}}/.scons_cache/
         run: |
-          scons target=release tools=no
-          ls -l bin/
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ${{ github.job }}
-          path: bin/*
-          retention-days: 14
+          scons -j2 target=release tools=no module_mono_enabled=yes mono_glue=no
