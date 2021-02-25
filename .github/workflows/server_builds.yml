@@ -4,7 +4,7 @@ on: [push, pull_request]
 # Global Cache Settings
 env:
   GODOT_BASE_BRANCH: 3.2
-  SCONSFLAGS: platform=server verbose=yes warnings=all werror=yes debug_symbols=no --jobs=2
+  SCONSFLAGS: platform=server verbose=yes warnings=all  debug_symbols=no --jobs=2
   SCONS_CACHE_LIMIT: 4096
 
 jobs:
@@ -61,7 +61,7 @@ jobs:
         env:
           SCONS_CACHE: ${{github.workspace}}/.scons_cache/
         run: |
-          scons -j2 verbose=yes warnings=all werror=yes platform=server tools=yes target=release_debug module_mono_enabled=yes mono_glue=no
+          scons -j2 verbose=yes warnings=all  platform=server tools=yes target=release_debug module_mono_enabled=yes mono_glue=no
 
   linux-server:
     runs-on: "ubuntu-20.04"
