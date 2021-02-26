@@ -3,7 +3,7 @@ on: [push, pull_request]
 
 # Global Settings
 env:
-  GODOT_BASE_BRANCH: 3.2
+  GODOT_BASE_BRANCH: 3.2.3-stable-m4c0
   SCONSFLAGS: platform=iphone verbose=yes warnings=all  debug_symbols=no --jobs=2
   SCONS_CACHE_LIMIT: 4096
 
@@ -50,11 +50,6 @@ jobs:
         run: |
           scons target=release tools=no arch=arm
           scons target=release tools=no arch=arm64
-          cp -r misc/dist/ios_xcode/* bin/
-          lipo -create bin/libgodot.iphone.opt.arm.a bin/libgodot.iphone.opt.arm64.a -output bin/libgodot.iphone.release.fat.a
-          lipo -create bin/libgodot_camera_module.iphone.opt.arm.a bin/libgodot_camera_module.iphone.opt.arm64.a -output bin/libgodot_camera_module.iphone.release.fat.a
-          lipo -create bin/libgodot_arkit_module.iphone.opt.arm.a bin/libgodot_arkit_module.iphone.opt.arm64.a -output bin/libgodot_arkit_module.iphone.release.fat.a
-          rm -f bin/*.arm.a bin/*.arm64.a
           ls -l bin/
 
       - uses: actions/upload-artifact@v2
@@ -63,4 +58,16 @@ jobs:
           path: bin/*
           retention-days: 14
 
+      - name: Bundle
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: |
+          mkdir bin/dist
+          cp -r misc/dist/ios_xcode/* bin/dist/
+          lipo -create bin/libgodot.iphone.opt.arm.a bin/libgodot.iphone.opt.arm64.a -output bin/dist/libgodot.iphone.release.fat.a
+          lipo -create bin/libgodot_camera_module.iphone.opt.arm.a bin/libgodot_camera_module.iphone.opt.arm64.a -output bin/dist/libgodot_camera_module.iphone.release.fat.a
+          lipo -create bin/libgodot_arkit_module.iphone.opt.arm.a bin/libgodot_arkit_module.iphone.opt.arm64.a -output bin/dist/libgodot_arkit_module.iphone.release.fat.a
+          cd bin/dist
+          zip -r ../ios_template.zip .
+          gh release upload --clobber ${{env.GODOT_BASE_BRANCH}} ../ios_template.zip
 

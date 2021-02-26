@@ -3,7 +3,7 @@ on: [push, pull_request]
 
 # Global Settings
 env:
-  GODOT_BASE_BRANCH: 3.2
+  GODOT_BASE_BRANCH: 3.2.3-stable-m4c0
   SCONSFLAGS: platform=osx verbose=yes warnings=all  debug_symbols=no --jobs=2
   SCONS_CACHE_LIMIT: 4096
 
@@ -51,12 +51,6 @@ jobs:
           SCONS_CACHE: ${{github.workspace}}/.scons_cache/
         run: |
           scons tools=yes target=release_debug
-
-          cp -r misc/dist/osx_tools.app bin/Godot.app
-          mkdir -p bin/Godot.app/Contents/MacOS
-          mv bin/godot.osx.opt.tools.64 bin/Godot.app/Contents/MacOS/Godot
-          chmod +x bin/Godot.app/Contents/MacOS/Godot
-
           ls -l bin/
 
       - uses: actions/upload-artifact@v2
@@ -64,6 +58,18 @@ jobs:
           name: ${{ github.job }}
           path: bin/*
           retention-days: 14
+
+      - name: Bundle
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: |
+          cp -r misc/dist/osx_tools.app bin/Godot.app
+          mkdir -p bin/Godot.app/Contents/MacOS
+          mv bin/godot.osx.opt.tools.64 bin/Godot.app/Contents/MacOS/Godot
+          chmod +x bin/Godot.app/Contents/MacOS/Godot
+          cd bin
+          zip -r osx_editor.zip Godot.app
+          gh release upload --clobber ${{env.GODOT_BASE_BRANCH}} osx_editor.zip
 
   macos-template:
     runs-on: "macos-latest"
@@ -106,12 +112,6 @@ jobs:
           SCONS_CACHE: ${{github.workspace}}/.scons_cache/
         run: |
           scons target=release tools=no
-
-          cp -r misc/dist/osx_template.app bin/
-          mkdir -p bin/osx_template.app/Contents/MacOS
-          mv bin/godot.osx.opt.64 bin/osx_template.app/Contents/MacOS/Godot
-          chmod +x bin/osx_template.app/Contents/MacOS/Godot
-
           ls -l bin/
 
       - uses: actions/upload-artifact@v2
@@ -119,3 +119,16 @@ jobs:
           name: ${{ github.job }}
           path: bin/*
           retention-days: 14
+
+      - name: Bundle
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: |
+          cp -r misc/dist/osx_template.app bin/
+          mkdir -p bin/osx_template.app/Contents/MacOS
+          mv bin/godot.osx.opt.64 bin/osx_template.app/Contents/MacOS/Godot
+          chmod +x bin/osx_template.app/Contents/MacOS/Godot
+          cd bin
+          zip -r osx_template.zip osx_template.app
+          gh release upload --clobber ${{env.GODOT_BASE_BRANCH}} osx_template.zip
+
