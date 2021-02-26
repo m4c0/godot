@@ -51,6 +51,12 @@ jobs:
           SCONS_CACHE: ${{github.workspace}}/.scons_cache/
         run: |
           scons tools=yes target=release_debug
+
+          cp -r misc/dist/osx_tools.app bin/Godot.app
+          mkdir -p bin/Godot.app/Contents/MacOS
+          mv bin/godot.osx.opt.tools.64 bin/Godot.app/Contents/MacOS/Godot
+          chmod +x bin/Godot.app/Contents/MacOS/Godot
+
           ls -l bin/
 
       - uses: actions/upload-artifact@v2
@@ -100,6 +106,12 @@ jobs:
           SCONS_CACHE: ${{github.workspace}}/.scons_cache/
         run: |
           scons target=release tools=no
+
+          cp -r misc/dist/osx_template.app bin/
+          mkdir -p bin/osx_template.app/Contents/MacOS
+          mv bin/godot.osx.opt.64 bin/osx_template.app/Contents/MacOS/Godot
+          chmod +x bin/osx_template.app/Contents/MacOS/Godot
+
           ls -l bin/
 
       - uses: actions/upload-artifact@v2
