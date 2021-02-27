@@ -4,7 +4,7 @@ on: [push, pull_request]
 # Global Settings
 # SCONS_CACHE for windows must be set in the build environment
 env:
-  GODOT_BASE_BRANCH: 3.2
+  GODOT_BASE_BRANCH: 3.2.3-stable-m4c0
   SCONSFLAGS: platform=windows verbose=yes warnings=all  debug_symbols=no --jobs=2
   SCONS_CACHE_MSVC_CONFIG: true
   SCONS_CACHE_LIMIT: 4096
@@ -64,6 +64,12 @@ jobs:
         path: bin/*
         retention-days: 14
 
+    - name: Bundle
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      run: |
+        gh release upload --clobber ${{env.GODOT_BASE_BRANCH}} bin/godot.windows.opt.tools.64.exe
+
   windows-template:
     runs-on: "windows-latest"
     name: Template (target=release, tools=no)
@@ -113,3 +119,10 @@ jobs:
         name: ${{ github.job }}
         path: bin/*
         retention-days: 14
+
+    - name: Bundle
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      run: |
+        gh release upload --clobber ${{env.GODOT_BASE_BRANCH}} bin/godot.windows.opt.64.exe
+
