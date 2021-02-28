@@ -126,8 +126,8 @@ jobs:
         run: |
           cp -r misc/dist/osx_template.app bin/
           mkdir -p bin/osx_template.app/Contents/MacOS
-          mv bin/godot.osx.opt.64 bin/osx_template.app/Contents/MacOS/Godot
-          chmod +x bin/osx_template.app/Contents/MacOS/Godot
+          mv bin/godot.osx.opt.64 bin/osx_template.app/Contents/MacOS/godot_osx_release.64
+          chmod +x bin/osx_template.app/Contents/MacOS/godot_osx_release.64
           cd bin
           zip -r osx_template.zip osx_template.app
           gh release upload --clobber ${{env.GODOT_BASE_BRANCH}} osx_template.zip
